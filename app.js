@@ -1,35 +1,61 @@
-import youtubedl from "youtube-dl-exec";
-import Ffmpeg from "fluent-ffmpeg";
-youtubedl("https://www.youtube.com/watch?v=GLjPyo3ThV8", {
-  dumpSingleJson: true,
-}).then((data) => {
-  const audio = data.formats.find(
-    (format) =>
-      format.ext === "m4a" ||
-      (format.ext === "webm" && format.resolution === "audio only")
-  );
-  const video = data.formats
-    .reverse()
-    .find(
-      (format) =>
-        format.format.includes("4320p") ||
-        format.format.includes("2160p") ||
-        format.format.includes("1080p") ||
-        format.format.includes("720p") ||
-        format.format.includes("480p") ||
-        format.format.includes("360p") ||
-        format.format.includes("144p") ||
-        format.format.includes("1080x720")
-    );
-  Ffmpeg()
-    .input(video.url)
-    .input(audio.url)
-    .outputOptions(["-c:v copy", "-c:a aac"])
-    .save(video.format + ".mp4")
-    .on("end", () => {
-      console.log("Audio and video merged successfully!");
-    })
-    .on("error", (err) => {
-      console.log("error", err);
-    });
+import express from "express";
+import {
+  downloadVideo,
+  getVideoInfromation,
+  youtubeVideoFormats,
+} from "./downloader.js";
+import path from "path";
+import cors from "cors";
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.get("/", (req, res) => {
+  res.send("Server is up and running");
+});
+
+app.post("/video", async (req, res) => {
+  const body = req.body;
+  const video_url = body?.url; //
+  if (!video_url) {
+    return res.status(400).send("Please send video url!");
+  }
+  const videoInfo = await getVideoInfromation(video_url);
+  res.send({
+    title: videoInfo.title,
+    thumbnail: videoInfo.thumbnail,
+    uploader: videoInfo.uploader,
+    duration: videoInfo.duration,
+    availableResolutions: youtubeVideoFormats
+      .map((format) => {
+        const info = videoInfo.formats.find(
+          (f) => f.resolution === format.resolution
+        );
+
+        return {
+          ...format,
+          url: info?.url,
+        };
+      })
+      .filter((t) => t.url)
+      .reverse(),
+  });
+});
+
+app.post("/download", async (req, res) => {
+  const youtube_url = req.body.youtube_url;
+  const video_url = req.body.video_url;
+  await downloadVideo(youtube_url, video_url);
+  const videoPath = path.resolve("video.mp4");
+  res.download(videoPath, "video.mp4", (err) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send("File not found");
+    }
+  });
+});
+
+const PORT = 8080;
+app.listen(PORT, () => {
+  console.log(`Server is running at port: ${PORT}`);
 });
