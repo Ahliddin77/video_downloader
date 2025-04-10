@@ -2,13 +2,13 @@
 
 ## Overview
 
-This project enables users to download videos effortlessly from prevalent platforms like YouTube. It fetches the best available video and audio formats separately and merges them into a single high-quality output file using `ffmpeg`.
+This project enables users to download videos effortlessly from popular platforms like **YouTube**, **TikTok**, and **Instagram**. It uses `youtube-dl-exec` to fetch and download videos in the best available quality.
 
 ## Features
 
-- Fetches video and audio separately to ensure the best quality.
-- Supports multiple resolutions (4320p, 2160p, 1080p, etc.).
-- Merges video and audio seamlessly using `ffmpeg`.
+- **YouTube Support**: Fetch video information and download videos in multiple resolutions.
+- **TikTok Support**: Download TikTok videos directly.
+- **Instagram Support**: Download Instagram videos directly.
 - Simple and efficient execution with `youtube-dl-exec`.
 
 ## Installation
@@ -18,20 +18,24 @@ This project enables users to download videos effortlessly from prevalent platfo
 Ensure you have the following installed:
 
 - [Node.js](https://nodejs.org/)
-- [ffmpeg](https://ffmpeg.org/)
+- [ffmpeg](https://ffmpeg.org/) (optional, for advanced video processing)
 
 ### Steps
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/your-username/video-downloader.git
    cd video-downloader
    ```
+
 2. Install dependencies:
+
    ```bash
-   npm install youtube-dl-exec fluent-ffmpeg
+   npm install
    ```
-3. Ensure `ffmpeg` is available globally. You can check by running:
+
+3. Ensure `ffmpeg` is available globally (optional). You can check by running:
    ```bash
    ffmpeg -version
    ```
@@ -39,22 +43,64 @@ Ensure you have the following installed:
 
 ## Usage
 
-1. Open `app.js` and modify the video URL:
-   ```javascript
-   youtubedl("https://www.youtube.com/watch?v=GLjPyo3ThV8", {
-     dumpSingleJson: true,
-   });
-   ```
-2. Run the script:
+1. Start the server:
+
    ```bash
-   node app.js
+   npm start
    ```
-3. The merged video will be saved in the current directory with the best available resolution.
+
+2. Use the following endpoints to download videos:
+
+   - **YouTube Video Information**:
+
+     - Endpoint: `POST /video`
+     - Body:
+       ```json
+       {
+         "url": "https://www.youtube.com/watch?v=example"
+       }
+       ```
+     - Response: Video metadata including title, thumbnail, uploader, and available resolutions.
+
+   - **Download YouTube Video**:
+
+     - Endpoint: `POST /download`
+     - Body:
+       ```json
+       {
+         "video_url": "https://www.youtube.com/watch?v=example"
+       }
+       ```
+     - The video will be saved as `video.mp4`.
+
+   - **Download TikTok Video**:
+
+     - Endpoint: `POST /download-tiktok`
+     - Body:
+       ```json
+       {
+         "video_url": "https://www.tiktok.com/@user/video/example"
+       }
+       ```
+     - The video will be saved as `tiktok_video.mp4`.
+
+   - **Download Instagram Video**:
+     - Endpoint: `POST /download-instagram`
+     - Body:
+       ```json
+       {
+         "video_url": "https://www.instagram.com/p/example"
+       }
+       ```
+     - The video will be saved as `instagram_video.mp4`.
 
 ## Known Issues
 
-- Some videos may not be downloadable due to YouTube restrictions.
-- Ensure `ffmpeg` is installed and accessible in the system path.
+- Some videos may not be downloadable due to platform restrictions.
+- Ensure `youtube-dl` or `yt-dlp` is up to date to avoid compatibility issues:
+  ```bash
+  npx youtube-dl --update
+  ```
 
 ## Contributing
 
